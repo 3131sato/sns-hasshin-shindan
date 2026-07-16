@@ -15,3 +15,13 @@ export const FIXED_MESSAGE_2 =
 
 // 回答の保存キー（localStorage）
 export const STORAGE_KEY = "sns_hasshin_answers_v1";
+
+// ============================================================
+// データ保存（ログ計測）用エンドポイント
+// Google Apps Script のウェブアプリURLを Vercel 環境変数
+//   NEXT_PUBLIC_SHEETS_ENDPOINT
+// に設定する（静的サイトなのでビルド時に埋め込まれる）。
+// 未設定なら計測は自動でスキップ（エラーは出さない）。
+// ※ 別サービス（Supabase等）に差し替える場合も、この定数の向き先を変えるだけ。
+// ============================================================
+export const SHEETS_ENDPOINT = process.env.NEXT_PUBLIC_SHEETS_ENDPOINT ?? "";

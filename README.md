@@ -24,5 +24,14 @@ npm run dev      # http://localhost:3000
 npm run build    # out/ に静的HTMLを出力
 ```
 
+## データ保存・計測（任意）
+診断の「結果閲覧(view)」と「CTAクリック(cta_click)」を Google スプレッドシートに記録できる。
+- 送信処理: `lib/track.ts`（エンドポイントにJSONをPOSTするだけ。保存先の差し替えも容易）
+- 受け側: `google-apps-script/Code.gs`（スプレッドシートに紐づくGASウェブアプリ）
+- 設定手順: `docs/SHEETS-SETUP.md`
+- 環境変数 `NEXT_PUBLIC_SHEETS_ENDPOINT` にGASのURLを設定（未設定なら計測はスキップ）
+- CTAの決済URLには診断ID（`?ref=<session_id>`）が付き、将来の購入突合に使える
+
 ## デプロイ
 GitHub にpush → Vercel連携で自動デプロイ（`output: "export"` の静的サイト）。
+環境変数を追加/変更したら **再デプロイ**（静的サイトはビルド時に値が埋め込まれるため）。

@@ -23,10 +23,12 @@ import {
 } from "@/lib/config";
 import RadarChart from "@/components/RadarChart";
 import PieChart from "@/components/PieChart";
+import { getSessionId, logView, logCtaClick, resetSession } from "@/lib/track";
 
 export default function ResultPage() {
   const router = useRouter();
   const [result, setResult] = useState<DiagnosisResult | null>(null);
+  const [sid, setSid] = useState("");
 
   useEffect(() => {
     try {
@@ -36,7 +38,10 @@ export default function ResultPage() {
         router.replace("/diagnose");
         return;
       }
-      setResult(diagnose(answers));
+      const diag = diagnose(answers);
+      setResult(diag);
+      setSid(getSessionId());
+      logView(diag); // 診断結果の閲覧を記録（同一診断では1回だけ）
     } catch {
       router.replace("/diagnose");
     }
@@ -191,14 +196,22 @@ export default function ResultPage() {
       <div className="cta-wrap">
         <a
           className="btn"
-          href={PAYMENT_URL}
+          href={sid ? `${PAYMENT_URL}?ref=${encodeURIComponent(sid)}` : PAYMENT_URL}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => logCtaClick(result)}
         >
           発信設計プログラムを見る
         </a>
         <div style={{ marginTop: 10 }}>
-          <Link className="btn btn-ghost" href="/diagnose" onClick={() => localStorage.removeItem(STORAGE_KEY)}>
+          <Link
+            className="btn btn-ghost"
+            href="/diagnose"
+            onClick={() => {
+              localStorage.removeItem(STORAGE_KEY);
+              resetSession();
+            }}
+          >
             もう一度診断する
           </Link>
         </div>
