@@ -63,9 +63,38 @@ function doPost(e) {
   }
 }
 
-// 動作確認用（ブラウザでURLを開くと {"ok":true,"info":"..."} が返る）
-function doGet() {
-  return json_({ ok: true, info: "SNS shindan logger is running." });
+// 動作確認用
+//  - 通常: ブラウザでURLを開くと {"ok":true,...} が返る
+//  - ?recent=5 : 直近5件の session_id / event / timestamp と総件数を返す（書き込み確認用）
+//  - ?callback=xxx : JSONP で返す（外部から件数を確認できる。診断アプリは使用しない）
+function doGet(e) {
+  var out = { ok: true, info: "SNS shindan logger is running." };
+  var recent = e && e.parameter && e.parameter.recent ? parseInt(e.parameter.recent, 10) : 0;
+  if (recent > 0) {
+    var sh = getSheet_();
+    var last = sh.getLastRow();
+    out.total_rows = Math.max(0, last - 1); // ヘッダー行を除く
+    out.recent = [];
+    if (last >= 2) {
+      var start = Math.max(2, last - recent + 1);
+      var values = sh.getRange(start, 1, last - start + 1, 3).getValues(); // timestamp, session_id, event
+      for (var i = 0; i < values.length; i++) {
+        out.recent.push({
+          timestamp: values[i][0],
+          session_id: values[i][1],
+          event: values[i][2],
+        });
+      }
+    }
+  }
+  var body = JSON.stringify(out);
+  var cb = e && e.parameter && e.parameter.callback;
+  if (cb) {
+    return ContentService
+      .createTextOutput(cb + "(" + body + ")")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return json_(out);
 }
 
 function getSheet_() {
